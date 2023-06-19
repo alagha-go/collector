@@ -1,3 +1,9 @@
+#![allow(unused, dead_code)]
+use prelude::*;
+
 mod prelude;
 
-fn main() {}
+#[tokio::main]
+async fn main() -> Result<()> {
+    Ok(())
+}

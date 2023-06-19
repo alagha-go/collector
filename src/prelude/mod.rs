@@ -1,3 +1,7 @@
+#[cfg(test)]
+mod test;
+
+use chrono::{Duration, Datelike};
 use futures::{io::{self, BufReader, ErrorKind},prelude::*};
 use async_compression::futures::bufread::GzipDecoder;
 use serde::{Serialize, Deserialize};
@@ -15,8 +19,8 @@ pub struct Object {
 #[dynamic]
 pub static CLIENT: Client = Client::new();
 
-#[dynamic]
-pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
+// #[dynamic]
+// pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync + 'static>>;
 
@@ -48,4 +52,14 @@ pub fn str_from_number(number: u32) -> String {
         return number.to_string()
     }
     String::from("0") + &number.to_string()
+}
+
+
+pub fn collecting_date() -> String {
+    let mut time = chrono::offset::Utc::now();
+    if time.time() < chrono::naive::NaiveTime::from_hms_opt(8,0,0).unwrap() {
+        time-=chrono::Duration::days(1);
+    }
+    let (year, month, day) = (str_from_number(time.year() as u32), str_from_number(time.month()), str_from_number(time.day()));
+    month+"_"+&day+"_"+&year
 }
