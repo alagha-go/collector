@@ -22,7 +22,9 @@ pub static CLIENT: Client = Client::new();
 #[dynamic]
 pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
 
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync + 'static>>;
+pub type StdError = Box<dyn std::error::Error + Send + Sync + 'static>;
+
+pub type Result<T> = std::result::Result<T, StdError>;
 
 
 pub async fn laoad_ids(url: &str) -> Result<Vec<u32>> {
