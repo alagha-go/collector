@@ -19,8 +19,8 @@ pub struct Object {
 #[dynamic]
 pub static CLIENT: Client = Client::new();
 
-// #[dynamic]
-// pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
+#[dynamic]
+pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync + 'static>>;
 
