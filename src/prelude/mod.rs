@@ -1,0 +1,51 @@
+use futures::{io::{self, BufReader, ErrorKind},prelude::*};
+use async_compression::futures::bufread::GzipDecoder;
+use serde::{Serialize, Deserialize};
+use static_init::{dynamic};
+use reqwest::Client;
+
+
+#[derive(Default, Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(default)]
+pub struct Object {
+    id: u32
+}
+
+
+#[dynamic]
+pub static CLIENT: Client = Client::new();
+
+#[dynamic]
+pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
+
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync + 'static>>;
+
+
+pub async fn laoad_ids(url: &str) -> Result<Vec<u32>> {
+    let response = CLIENT.get(url).send().await?;
+    let mut ids = Vec::new();
+
+    let reader = response.bytes_stream().map_err(|e| io::Error::new(ErrorKind::Other, e)).into_async_read();
+    let mut decoder = GzipDecoder::new(BufReader::new(reader));
+    decoder.multiple_members(true); // supports multiline parsing
+    let decoder = BufReader::new(decoder);
+    let mut lines_stream = decoder.lines().map(|l| l.unwrap());
+
+    let mut line = lines_stream.next().await.unwrap_or(String::new());
+
+    while line.len() > 0 {
+        let object: Object = serde_json::from_str(&line)?;
+        ids.push(object.id);
+        line.clear();
+        line = lines_stream.next().await.unwrap_or(String::new());
+    }
+
+    Ok(ids)
+}
+
+pub fn str_from_number(number: u32) -> String {
+    if number > 9 {
+        return number.to_string()
+    }
+    String::from("0") + &number.to_string()
+}

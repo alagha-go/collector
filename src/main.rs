@@ -1,3 +1,3 @@
-fn main() {
-    println!("Hello, world!");
-}
+mod prelude;
+
+fn main() {}
