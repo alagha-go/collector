@@ -65,3 +65,20 @@ pub fn collecting_date() -> String {
     let (year, month, day) = (str_from_number(time.year() as u32), str_from_number(time.month()), str_from_number(time.day()));
     month+"_"+&day+"_"+&year
 }
+
+
+pub fn split<T, I: Iterator<Item = T>>(iter: I, limit: usize) -> Vec<Vec<T>> {
+    let mut iter = iter.peekable();
+    let mut rounds = Vec::new();
+    while let Some(item) = iter.peek() {
+        let mut round = Vec::new();
+        for _ in 0..limit {
+            match iter.next() {
+                Some(item) => round.push(item),
+                None => break
+            }
+        }
+        rounds.push(round)
+    }
+    rounds
+}
