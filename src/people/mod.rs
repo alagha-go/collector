@@ -10,16 +10,17 @@ use rayon::prelude::*;
 const URL: &str = "http://files.tmdb.org/p/exports/person_ids_";
 const ROUNDSIZE: usize = 500;
 
-pub async fn ids() -> Result<Vec<Vec<u32>>> {
+pub async fn ids() -> Result<Vec<Vec<Vec<u32>>>> {
     let url =  String::new() + URL + &collecting_date() + ".json.gz";
     let ids = laoad_ids(&url).await?;
-    Ok(split(ids.into_iter(), ROUNDSIZE))
+    let list = split(ids.into_iter(), ROUNDSIZE);
+    Ok(split(list.into_iter(), 2))
 }
 
-pub async fn collect(ids: &[u32]) -> (Vec<(u32, StdError)>, Vec<Person>) {
+pub async fn collect<'a>(ids: &'a [u32]) -> (Vec<(&'a u32, StdError)>, Vec<Person>) {
     let mut futures = Vec::new();
     for id in ids {
-        futures.push(Person::from_imdb_json(*id))
+        futures.push(Person::from_imdb_json(id))
     }
     let results = join_all(futures).await;
     let mut index = 0;
@@ -27,8 +28,8 @@ pub async fn collect(ids: &[u32]) -> (Vec<(u32, StdError)>, Vec<Person>) {
     let mut error_ids = Vec::new();
     results.into_iter().map(|result| {
         match result {
-            Ok(json) => jsons.push((json, ids[index])),
-            Err(err) => error_ids.push((ids[index], err))
+            Ok(json) => jsons.push((json, &ids[index])),
+            Err(err) => error_ids.push((&ids[index], err))
         }
         index+=1;
     });

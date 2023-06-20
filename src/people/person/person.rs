@@ -6,13 +6,13 @@ impl Person {
         Default::default()
     }
 
-    pub async fn from_imdb_json(id: u32) -> Result<String> {
+    pub async fn from_imdb_json(id: &u32) -> Result<String> {
         let url = PERSONURL.replace("ID", &id.to_string());
         let url = url.replace("APIKEY", &APIKEY);
         Ok(CLIENT.get(url).send().await?.text().await?)
     }
 
-    pub async fn from_imdb(id: u32) -> Result<Self> {
+    pub async fn from_imdb(id: &u32) -> Result<Self> {
         let value: Value = serde_json::from_str(&Self::from_imdb_json(id).await?)?;
         Ok(value.into())
     }
