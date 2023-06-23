@@ -1,11 +1,15 @@
 #[cfg(test)]
 mod test;
+pub mod que;
 
 use chrono::{Duration, Datelike};
 use futures::{io::{self, BufReader, ErrorKind},prelude::*};
 use async_compression::futures::bufread::GzipDecoder;
+use aws_sdk_sqs::{self as sqs, Client as Sqs};
 use serde::{Serialize, Deserialize};
 use static_init::{dynamic};
+use aws_config::SdkConfig;
+use tokio::sync::OnceCell;
 use reqwest::Client;
 
 
@@ -15,16 +19,21 @@ pub struct Object {
     id: u32
 }
 
-
 #[dynamic]
 pub static CLIENT: Client = Client::new();
-
 #[dynamic]
 pub static APIKEY: String = std::env::var("APIKEY").expect("APIKEY not provided");
+#[dynamic]
+pub static QUEUEURL: String = std::env::var("QUEUEURL").expect("QUEUEURL not provided");
+#[dynamic]
+pub static SQSCONCURRENCY: usize = (std::env::var("SQSCONCURRENCY").expect("SQSCONCURRENCY not provided")).parse().expect("provide SQSCONCURRENCY is invalid");
 
 pub type StdError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 pub type Result<T> = std::result::Result<T, StdError>;
+
+static CONFIG: OnceCell<SdkConfig> = OnceCell::const_new();
+static SQS: OnceCell<Sqs> = OnceCell::const_new();
 
 
 pub async fn laoad_ids(url: &str) -> Result<Vec<u32>> {
@@ -81,4 +90,13 @@ pub fn split<T, I: Iterator<Item = T>>(iter: I, limit: usize) -> Vec<Vec<T>> {
         rounds.push(round)
     }
     rounds
+}
+
+pub async fn config() -> &'static SdkConfig {
+    CONFIG.get_or_init(||async {aws_config::load_from_env().await}).await
+}
+
+pub async fn sqs() -> &'static Sqs {
+    let config = config().await;
+    SQS.get_or_init(|| async {Sqs::new(config)}).await
 }

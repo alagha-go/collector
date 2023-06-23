@@ -1,15 +1,14 @@
 use super::*;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Queue {
-    #[serde(alias = "records")]
-    pub messages: Vec<Message>,
+    pub records: Vec<Record>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub struct Message {
+pub struct Record {
     pub message_id: String,
     pub receipt_handle: String,
     pub body: String,
@@ -22,7 +21,7 @@ pub struct Message {
     pub aws_region: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Attributes {
     pub approximate_receive_count: String,
@@ -33,7 +32,7 @@ pub struct Attributes {
 
 
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct HttpRequest {
     pub headers: Headers,
@@ -46,7 +45,7 @@ pub struct HttpRequest {
     pub version: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub struct Headers {
     pub content_length: String,
@@ -65,7 +64,7 @@ pub struct Headers {
     pub user_agent: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct RequestContext {
     pub account_id: String,
@@ -80,7 +79,7 @@ pub struct RequestContext {
     pub api_id: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Http {
     pub path: String,
@@ -90,7 +89,7 @@ pub struct Http {
     pub user_agent: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Copy)]
 pub enum Type {
     #[default]
     None,
@@ -99,11 +98,18 @@ pub enum Type {
     Tv
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+#[serde(untagged)]
 pub enum Data {
     #[default]
     None,
     Type(Type),
     HttpRequest(HttpRequest),
-    Queue(Queue)
+    Queue(Queue),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct Message {
+    pub r#type: Type,
+    pub round: Vec<Vec<u32>>
 }

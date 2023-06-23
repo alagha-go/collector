@@ -33,10 +33,10 @@ pub async fn collect<'a>(ids: &'a [u32]) -> (Vec<(&'a u32, StdError)>, Vec<Perso
         }
         index+=1;
     });
-    let (mut errors, people): (Vec<_>, Vec<_>) = jsons.par_iter().map(|(json, id)| {
+    let (people, mut errors): (Vec<_>, Vec<_>) = jsons.par_iter().map(|(json, id)| {
         match Person::from_json(json) {
-            Ok(person) => Either::Right(person),
-            Err(err) => Either::Left((*id, err))
+            Ok(person) => Either::Left(person),
+            Err(err) => Either::Right((*id, err))
         }
     }).collect();
     error_ids.append(&mut errors);
