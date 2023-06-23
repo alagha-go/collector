@@ -26,13 +26,13 @@ pub async fn collect<'a>(ids: &'a [u32]) -> (Vec<(&'a u32, StdError)>, Vec<Perso
     let mut index = 0;
     let mut jsons = Vec::new();
     let mut error_ids = Vec::new();
-    results.into_iter().map(|result| {
+    for result in results {
         match result {
             Ok(json) => jsons.push((json, &ids[index])),
             Err(err) => error_ids.push((&ids[index], err))
         }
         index+=1;
-    });
+    }
     let (people, mut errors): (Vec<_>, Vec<_>) = jsons.par_iter().map(|(json, id)| {
         match Person::from_json(json) {
             Ok(person) => Either::Left(person),
